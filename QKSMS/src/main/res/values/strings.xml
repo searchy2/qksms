@@ -125,8 +125,8 @@
 
     <string name="pref_theme">Theme color</string>
     <string name="pref_theme_summary_alt">Tap to change theme</string>
-    <string name="pref_icon">Update QKSMS icon color</string>
-    <string name="pref_icon_summary">Update the QKSMS icon to match your theme color</string>
+    <string name="pref_icon">Icon color</string>
+    <string name="pref_icon_summary">Tap to change the QKSMS icon color</string>
     <string name="pref_status_tint">Tinted status bar</string>
     <string name="pref_navigation_tint">Tinted navigation bar</string>
     <string name="pref_background">Background color</string>
@@ -170,6 +170,12 @@
     <string name="pref_delivery_toast_summary">Show a short toast to indicate a message being delivered</string>
     <string name="pref_delivery_vibrate">Vibrate</string>
     <string name="pref_delivery_vibrate_summary">Vibrate on message delivery</string>
+    <string name="pref_delete_old_messages">Delete old messages</string>
+    <string name="pref_delete_old_messages_summary">Automatically delete messages once they\'re old enough</string>
+    <string name="pref_delete_old_messages_unread">Unread messages</string>
+    <string name="pref_delete_old_messages_unread_summary">Automatically delete unread messages after %s days</string>
+    <string name="pref_delete_old_messages_read">Read messages</string>
+    <string name="pref_delete_old_messages_read_summary">Automatically delete read messages after %s days</string>
     <string name="pref_yappy">Yappy integration</string>
     <string name="pref_endlessjabber_summary">Enable full support for Yappy</string>
     <string name="pref_blocked_conversations">Blocked conversations</string>
@@ -583,7 +589,7 @@
     <!-- Dialog title for updating app icon color -->
     <string name="update_icon_title">Update icon color</string>
     <!-- Dialog message for updating app icon color -->
-    <string name="update_icon_message">QKSMS must be restarted when changing the icon color. Restart now?</string>
+    <string name="update_icon_message">QKSMS must be restarted when changing the icon color</string>
 
     <string name="dialog_conversation_details_title">Conversation details</string>
     <string name="dialog_conversation_details_last_message_date">Last message date</string>
@@ -591,6 +597,7 @@
     <string name="dialog_conversation_details_recipients">Recipients (%s)</string>
     <string name="dialog_should_i_answer_title">Should I Answer? not installed</string>
     <string name="dialog_should_i_answer_message">Would you like to download the app from Google Play now?</string>
+    <string name="dialog_delete_old_messages">Are you sure you want to automatically delete old messages?</string>
 
     <!-- Title for audio file picker -->
     <string name="select_audio">Choose audio</string>
@@ -636,6 +643,7 @@
     <string name="toast_endlessjabber_not_installed">EndlessJabber is not installed, opening Google Play</string>
     <string name="toast_changelog_error">Couldn\'t load the changelog. Please try again later</string>
     <string name="toast_conversation_error">Couldn\'t open conversation</string>
+    <string name="toast_deleting_old_messages">Your old messages will be deleted shortly</string>
 
     <!--Toast shown to thank user for donating-->
     <string name="thanks_1">Thank you for donating! You\'re my new best friend.</string>
