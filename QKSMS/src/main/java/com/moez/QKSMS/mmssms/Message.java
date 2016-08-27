@@ -20,11 +20,37 @@ import android.graphics.Bitmap;
 import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class to hold all relevant message information to send
  */
 public class Message {
+
+    public static final class Part {
+        private byte[] media;
+        private String contentType;
+        private String name;
+        public Part(byte[] media, String contentType, String name) {
+            this.media = media;
+            this.contentType = contentType;
+            this.name = name;
+        }
+
+        public byte[] getMedia() {
+            return media;
+        }
+
+        public String getContentType() {
+            return contentType;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
     private static final String TAG = "Message";
     private static final boolean LOCAL_LOGV = false;
 
@@ -38,6 +64,7 @@ public class Message {
     private boolean save;
     private int type;
     private int delay;
+    private List<Part> parts = new ArrayList<Part>();
 
     /**
      * Default send type, to be sent through SMS or MMS depending on contents
@@ -277,25 +304,25 @@ public class Message {
         this.images = new Bitmap[1];
         this.images[0] = image;
     }
-    
+
+
     /**
-     * Sets audio file
+     * Sets audio file.  Must be in wav format.
      *
      * @param audio is the single audio sample to send to recipient
      */
-    public void setAudio(byte[] audio) {
-        this.media = audio;
-        this.mediaMimeType = "audio/wav";
+    public void addAudio(byte[] audio) {
+        addMedia(audio, "audio/wav");
     }
 
+
     /**
-     * Sets video file
+     * Adds video file
      *
      * @param video is the single video sample to send to recipient
      */
-    public void setVideo(byte[] video) {
-        this.media = video;
-        this.mediaMimeType = "video/3gpp";
+    public void addVideo(byte[] video) {
+        addMedia(video, "video/3gpp");
     }
 
     /**
@@ -304,9 +331,19 @@ public class Message {
      * @param media is the media you want to send
      * @param mimeType is the mimeType of the media
      */
+    @Deprecated
     public void setMedia(byte[] media, String mimeType) {
-        this.media = media;
-        this.mediaMimeType = mimeType;
+        addMedia(media, mimeType);
+    }
+
+    /**
+     * Adds other media
+     *
+     * @param media is the media you want to send
+     * @param mimeType is the mimeType of the media
+     */
+    public void addMedia(byte[] media, String mimeType) {
+        this.parts.add(new Part(media, mimeType, null));
     }
 
     /**
@@ -448,6 +485,17 @@ public class Message {
      *
      * @return a string with the subject of the message
      */
+
+
+    /**
+     * Gets the audio sample in the message
+     *
+     * @return an array of bytes with audio information for the message
+     */
+    public List<Part> getParts() {
+        return this.parts;
+    }
+
     public String getSubject() {
         return this.subject;
     }

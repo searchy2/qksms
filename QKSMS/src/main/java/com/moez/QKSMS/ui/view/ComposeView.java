@@ -39,6 +39,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 import com.github.lzyzsd.circleprogress.DonutProgress;
 import com.moez.QKSMS.common.LiveViewManager;
+import com.moez.QKSMS.common.utils.FileUtils;
 import com.moez.QKSMS.enums.QKPreference;
 import com.moez.QKSMS.mmssms.Transaction;
 import com.moez.QKSMS.mmssms.Utils;
@@ -454,6 +455,7 @@ public class ComposeView extends LinearLayout implements View.OnClickListener {
             message.setType(com.moez.QKSMS.mmssms.Message.TYPE_SMSMMS);
             if (attachment != null) {
                 message.setImage(ImageUtils.drawableToBitmap(attachment));
+//                message.addMedia(data, "text/x-vcard");
             }
 
             // Notify the listener about the new text message
@@ -823,6 +825,23 @@ public class ComposeView extends LinearLayout implements View.OnClickListener {
                         // TODO show the user some kind of feedback
                     }
                 }
+                else if ("text/x-vcard".equals(type)) {
+                    Uri uri = intent.getData();
+                    if (uri == null) {
+                        Bundle extras = intent.getExtras();
+                        if (extras != null) {
+                            uri = (Uri) extras.get(Intent.EXTRA_STREAM);
+                        }
+                    }
+
+                    Log.d("Message", "Received");
+                    new VCardLoaderTask(mContext, uri).execute();
+
+                    // If the Uri is still null here, throw the exception.
+                    if (uri == null) {
+                        // TODO show the user some kind of feedback
+                    }
+                }
             } else {
                 if (intent.getExtras() != null) {
                     String body = intent.getExtras().getString("sms_body");
@@ -861,6 +880,13 @@ public class ComposeView extends LinearLayout implements View.OnClickListener {
             mAttachment.setImageBitmap(imageBitmap);
             mAttachmentLayout.setVisibility(View.VISIBLE);
             updateButtonState();
+        }
+    }
+
+    public void setAttachment(byte[] data) {
+        if (data == null) {
+            clearAttachment();
+        } else {
         }
     }
 
@@ -968,6 +994,65 @@ public class ComposeView extends LinearLayout implements View.OnClickListener {
                 });
             }
             return null;
+
+        }
+    }
+
+    private class VCardLoaderTask extends AsyncTask<Uri, Void, Void> {
+        final Context mContext;
+        final Uri mUri;
+        final Handler mHandler;
+
+        public VCardLoaderTask(final Context context, final Uri uri) {
+            mContext = context;
+            mUri = uri;
+            mHandler = new Handler();
+        }
+
+        public void execute() {
+            execute(mUri);
+        }
+
+        @Override
+        protected Void doInBackground(Uri... params) {
+
+            if (params.length < 1) {
+                Log.e(TAG, "ImageLoaderTask called with no Uri");
+                return null;
+            }
+
+            try {
+                Uri uri = params[0];
+//
+                InputStream vCardStream = mContext.getContentResolver().openInputStream(uri);
+                byte[] data = FileUtils.getBytes(vCardStream);
+
+                mHandler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        setAttachment(data);
+                        Log.d("Attached", "Attached");
+                    }
+                });
+
+//            } catch (FileNotFoundException | NullPointerException e) {
+//                // Make a toast to the user that the file they've requested to view
+//                // isn't available.
+//                mHandler.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        Toast.makeText(
+//                                mContext,
+//                                mRes.getString(R.string.error_file_not_found),
+//                                Toast.LENGTH_SHORT
+//                        ).show();
+//                    }
+//                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+
         }
     }
 
