@@ -82,6 +82,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import static android.R.attr.data;
+
 public class MessageListFragment extends QKFragment implements ActivityLauncher, SensorEventListener,
         LoaderManager.LoaderCallbacks<Cursor>, RecyclerCursorAdapter.MultiSelectListener, SwipeBackLayout.ScrollChangedListener,
         RecyclerCursorAdapter.ItemClickListener<MessageItem> {
@@ -132,7 +134,6 @@ public class MessageListFragment extends QKFragment implements ActivityLauncher,
     // If the value >= 0, then we jump to that line. If the
     // value is maxint, then we jump to the end.
 
-    private long mLastMessageId;
     private BackgroundQueryHandler mBackgroundQueryHandler;
 
     private long mThreadId;
@@ -206,6 +207,7 @@ public class MessageListFragment extends QKFragment implements ActivityLauncher,
         mAdapter.setItemClickListener(this);
         mAdapter.setMultiSelectListener(this);
         mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+            private long mLastMessageId = -1;
             @Override
             public void onChanged() {
                 LinearLayoutManager manager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
@@ -223,8 +225,15 @@ public class MessageListFragment extends QKFragment implements ActivityLauncher,
                     position = mAdapter.getItemCount() - 1;
                 }
 
-                if (position != -1) {
-                    manager.smoothScrollToPosition(mRecyclerView, null, position);
+                if(mAdapter.getCount() > 0) {
+                    MessageItem lastMessage = mAdapter.getItem(mAdapter.getCount() - 1);
+                    if (mLastMessageId >= 0 && mLastMessageId != lastMessage.getMessageId()) {
+                        // Scroll to bottom only if a new message was inserted in this conversation
+                        if (position != -1) {
+                            manager.smoothScrollToPosition(mRecyclerView, null, position);
+                        }
+                    }
+                    mLastMessageId = lastMessage.getMessageId();
                 }
             }
         });
@@ -572,7 +581,7 @@ public class MessageListFragment extends QKFragment implements ActivityLauncher,
     }
 
     private void initLoaderManager() {
-        getLoaderManager().initLoader(0, null, this);
+        getLoaderManager().initLoader(QKSMSApp.LOADER_MESSAGES, null, this);
     }
 
     @Override
@@ -619,21 +628,28 @@ public class MessageListFragment extends QKFragment implements ActivityLauncher,
         // Ignored
     }
 
+    @Override
     public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(mContext,
-                Uri.withAppendedPath(Message.MMS_SMS_CONTENT_PROVIDER, String.valueOf(mThreadId)),
-                MessageColumns.PROJECTION, null, null, "normalized_date ASC");
+        if (id == QKSMSApp.LOADER_MESSAGES) {
+            return new CursorLoader(mContext,
+                    Uri.withAppendedPath(Message.MMS_SMS_CONTENT_PROVIDER, String.valueOf(mThreadId)),
+                    MessageColumns.PROJECTION, null, null, "normalized_date ASC");
+        } else {
+            return null;
+        }
     }
 
+    @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        if (mAdapter != null) {
+        if (mAdapter != null && loader.getId() == QKSMSApp.LOADER_MESSAGES) {
             // Swap the new cursor in.  (The framework will take care of closing the, old cursor once we return.)
             mAdapter.changeCursor(data);
         }
     }
 
+    @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        if (mAdapter != null) {
+        if (mAdapter != null && loader.getId() == QKSMSApp.LOADER_MESSAGES) {
             mAdapter.changeCursor(null);
         }
     }
@@ -932,10 +948,6 @@ public class MessageListFragment extends QKFragment implements ActivityLauncher,
                     mConversation.setMessageCount(0);
                     // fall through
                 case DELETE_MESSAGE_TOKEN:
-                    if (cookie instanceof Boolean && ((Boolean) cookie).booleanValue()) {
-                        // If we just deleted the last message, reset the saved id.
-                        mLastMessageId = 0;
-                    }
 
                     // Update the notification for new messages since they may be deleted.
                     NotificationManager.update(mContext);
